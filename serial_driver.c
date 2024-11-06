@@ -8,7 +8,7 @@
 // Define packet structure fields
 #define TO 0x04       // Example destination address
 #define FROM 0x02     // Example source address
-#define DATA "Hello from the driver!"  // Example data to send
+#define DATA "Hello from fuck you"  // Example data to send
 
 // Calculate checksum (as per the format you mentioned)
 unsigned char calculate_checksum(unsigned char to, unsigned char from, unsigned char length) {
@@ -21,12 +21,13 @@ void send_packet(int serial_port) {
     unsigned char checksum = calculate_checksum(TO, FROM, length);
 
     // Create packet
-    unsigned char packet[4 + length];
-    packet[0] = TO;
-    packet[1] = FROM;
-    packet[2] = length;
-    packet[3] = checksum;
-    memcpy(&packet[4], DATA, length);
+    unsigned char packet[5 + length];
+    packet[0] = 'J';
+    packet[1] = TO;
+    packet[2] = FROM;
+    packet[3] = length;
+    packet[4] = checksum;
+    memcpy(&packet[5], DATA, length);
 
     // Send the packet
     write(serial_port, packet, sizeof(packet));
@@ -35,7 +36,7 @@ void send_packet(int serial_port) {
 }
 
 int main() {
-    const char *portname = "/dev/ttyUSB0";  // Adjust to your port
+    const char *portname = "/dev/ttyACM0";  // Adjust to your port
     int serial_port = open(portname, O_RDWR | O_NOCTTY | O_NDELAY);
 
     if (serial_port == -1) {
@@ -56,6 +57,7 @@ int main() {
 
     tcsetattr(serial_port, TCSANOW, &options);
 
+    tcflush(serial_port,TCIOFLUSH);
     // Send the packet
     send_packet(serial_port);
 
