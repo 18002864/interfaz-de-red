@@ -8,7 +8,6 @@
 // Define packet structure fields
 #define TO 0x04       // Example destination address
 #define FROM 0x02     // Example source address
-#define DATA "Hello from fuck you"  // Example data to send
 
 // Calculate checksum (as per the format you mentioned)
 unsigned char calculate_checksum(unsigned char to, unsigned char from, unsigned char length) {
@@ -16,8 +15,8 @@ unsigned char calculate_checksum(unsigned char to, unsigned char from, unsigned 
 }
 
 // Function to send the packet over serial
-void send_packet(int serial_port) {
-    unsigned char length = strlen(DATA);
+void send_packet(int serial_port, const char *data) {
+    unsigned char length = strlen(data);
     unsigned char checksum = calculate_checksum(TO, FROM, length);
 
     // Create packet
@@ -27,15 +26,24 @@ void send_packet(int serial_port) {
     packet[2] = FROM;
     packet[3] = length;
     packet[4] = checksum;
-    memcpy(&packet[5], DATA, length);
+    memcpy(&packet[5], data, length);
 
     // Send the packet
     write(serial_port, packet, sizeof(packet));
     printf("Sent packet: To=%d, From=%d, Length=%d, Checksum=%d, Data=%s\n",
-           TO, FROM, length, checksum, DATA);
+           TO, FROM, length, checksum, data);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <data>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    const char *data = argv[1];
+
+    printf("------> %s\n", data);
+
     const char *portname = "/dev/ttyACM0";  // Adjust to your port
     int serial_port = open(portname, O_RDWR | O_NOCTTY | O_NDELAY);
 
@@ -57,9 +65,10 @@ int main() {
 
     tcsetattr(serial_port, TCSANOW, &options);
 
-    tcflush(serial_port,TCIOFLUSH);
-    // Send the packet
-    send_packet(serial_port);
+    tcflush(serial_port, TCIOFLUSH);
+    
+    // Send the packet with the data from the HTTP server
+    send_packet(serial_port, data);
 
     // Close the serial port
     close(serial_port);
