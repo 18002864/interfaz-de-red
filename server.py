@@ -218,6 +218,7 @@ def execute_driver_command(command_packet):
     except Exception as e:
         print(f"Error executing driver: {str(e)}")
 
+
 # Run HTTP Server
 def run(server_class=HTTPServer, handler_class=RequestHandler, port=8080):
     server_address = ("", port)
